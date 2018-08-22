@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- slf4j日志配置文件 -->
+<configuration debug="true" scan="true" scanPeriod="30 seconds">
+    <!-- 设置日志输出根目录 -->
+    <property name="log.dir" value="logs"/>
+    <property name="encoding" value="UTF-8"/>
+    <!--<property name="normal-pattern" value="%d{MM-dd HH:mm:ss} %-5level [%thread] %logger{10}.%M:%L %msg%n" />-->
+    <property name="normal-pattern" value="%d{ISO8601} [%-5level] [%thread] |%L|%-40.40logger{0}.%M|%X{QTRACER}|---%msg%n"/>
+    <property name="console-pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS}|%.-5level|%-40.40logger{0} %M:%L|%msg%n"/>
+    <property name="plain-pattern" value="%d{MM-dd HH:mm:ss} %msg%n"/>
+
+    <!-- log file default -->
+    <appender name="logAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>javase.log</File>
+        <prudent>false</prudent>
+        <Append>true</Append>
+        <encoder>
+            <pattern>${normal-pattern}</pattern>
+            <charset>${encoding}</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>javase.%d{yyyy-MM-dd-HH}.log</fileNamePattern>
+        </rollingPolicy>
+        <!--<maxHistory>7</maxHistory>-->
+    </appender>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${normal-pattern}</pattern>
+            <charset>${encoding}</charset>
+        </encoder>
+    </appender>
+    <root level="DEBUG">
+        <appender-ref ref="logAppender"/>
+        <appender-ref ref="console" />
+    </root>
+
+</configuration>
