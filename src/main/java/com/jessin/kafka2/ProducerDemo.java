@@ -1,13 +1,13 @@
 package com.jessin.kafka2;
 
-import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.clients.producer.*;
 
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 先切到root下启动zookeeper：
@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutionException;
  **/
 public class ProducerDemo {
     public static void main(String[] args) {
-        boolean isASync = args.length == 0;
         Properties properties = new Properties();
         properties.put("bootstrap.servers", "localhost:9093");
         properties.put("client.id", "DemoProducer");
@@ -30,12 +29,27 @@ public class ProducerDemo {
                 "org.apache.kafka.common.serialization.IntegerSerializer");
         properties.put("value.serializer",
                 "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 30000);
+        properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 32 * 1024 * 1024);
+        // 默认等待缓冲区，1min，缓存大小为32MB，RecordBatch默认是16384B = 16KB，也就是最多有2048个RecordBatch
         KafkaProducer producer = new KafkaProducer(properties);
+        boolean isASync = args.length == 0;
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10,
+                0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(100));
+        for (int i = 0; i < 10; i++) {
+            threadPoolExecutor.execute(() -> {
+                run(producer, isASync);
+            });
+        }
+        threadPoolExecutor.shutdown();
+    }
+
+    private static void run(KafkaProducer producer, boolean isASync) {
         String topic = "test";
         int messageNo = 1;
         while (messageNo < 100000000) {
             System.out.println("开始发送消息");
-            String messageStr = "Message_司机来了" + messageNo;
+            String messageStr = Thread.currentThread()  + " Message_司机来了" + messageNo;
             long startTime = System.currentTimeMillis();
             if (isASync) {
                 producer.send(new ProducerRecord(topic, messageNo, messageStr), new DemoCallBack(startTime, messageNo, messageStr));
@@ -56,11 +70,11 @@ public class ProducerDemo {
             }
             ++messageNo;
             // 休眠一阵子，等待回调。
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Thread.sleep(2000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         }
         // 休眠一阵子，等待回调。
         try {

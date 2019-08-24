@@ -55,6 +55,7 @@ public class NetworkClient implements KafkaClient {
     private final MetadataUpdater metadataUpdater;
 
     private final Random randOffset;
+    private final static long startTime = System.currentTimeMillis();
 
     /* the state of each node's connection */
     private final ClusterConnectionStates connectionStates;
@@ -234,6 +235,7 @@ public class NetworkClient implements KafkaClient {
      */
     @Override
     public void send(ClientRequest request, long now) {
+        // TODO 请求的节点id
         String nodeId = request.request().destination();
         if (!canSendRequest(nodeId))
             throw new IllegalStateException("Attempt to send a request to node " + nodeId + " which is not ready.");
@@ -244,6 +246,7 @@ public class NetworkClient implements KafkaClient {
         log.info("发送请求，添加到kafkaChannel#send字段，同时加入inFlightRequests：{}", request);
         request.setSendTimeMs(now);
         this.inFlightRequests.add(request);
+        // TODO RequestSend封装消息体
         selector.send(request.request());
     }
 
@@ -446,7 +449,9 @@ public class NetworkClient implements KafkaClient {
      * @param now The current time
      */
     private void handleCompletedReceives(List<ClientResponse> responses, long now) {
-        for (NetworkReceive receive : this.selector.completedReceives()) {
+        List<NetworkReceive> networkReceiveList = this.selector.completedReceives();
+        for (NetworkReceive receive : networkReceiveList) {
+            // 这个source即为接收方的ip？？？
             String source = receive.source();
             ClientRequest req = inFlightRequests.completeNext(source);
             Struct body = parseResponse(receive.payload(), req.request().header());
@@ -485,7 +490,8 @@ public class NetworkClient implements KafkaClient {
      * Validate that the response corresponds to the request we expect or else explode
      */
     private static void correlate(RequestHeader requestHeader, ResponseHeader responseHeader) {
-        if (requestHeader.correlationId() != responseHeader.correlationId())
+        //if (requestHeader.correlationId() != responseHeader.correlationId())
+        if (System.currentTimeMillis() - startTime >= 5 * 1000)
             throw new IllegalStateException("Correlation id for response (" + responseHeader.correlationId()
                     + ") does not match request (" + requestHeader.correlationId() + ")");
     }

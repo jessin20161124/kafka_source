@@ -67,6 +67,9 @@ public class Selector implements Selectable {
     private static final Logger log = LoggerFactory.getLogger(Selector.class);
 
     private final java.nio.channels.Selector nioSelector;
+    /**
+     * TODO nodeId -> KafkaChannel
+     */
     private final Map<String, KafkaChannel> channels;
     private final List<Send> completedSends;
     private final List<NetworkReceive> completedReceives;
@@ -215,6 +218,7 @@ public class Selector implements Selectable {
      * @param send The request to send
      */
     public void send(Send send) {
+        // TODO send.destination是node.id
         KafkaChannel channel = channelOrFail(send.destination());
         try {
             channel.setSend(send);

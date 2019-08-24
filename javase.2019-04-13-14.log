@@ -1,0 +1,159 @@
+2019-04-13 14:59:08,265 [INFO ] [main] |178|ProducerConfig                          .logAll||---ProducerConfig values: 
+	metric.reporters = []
+	metadata.max.age.ms = 300000
+	reconnect.backoff.ms = 50
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	bootstrap.servers = [localhost:9093]
+	ssl.keystore.type = JKS
+	sasl.mechanism = GSSAPI
+	max.block.ms = 60000
+	interceptor.classes = null
+	ssl.truststore.password = null
+	client.id = DemoProducer
+	ssl.endpoint.identification.algorithm = null
+	request.timeout.ms = 30000
+	acks = 1
+	receive.buffer.bytes = 32768
+	ssl.truststore.type = JKS
+	retries = 0
+	ssl.truststore.location = null
+	ssl.keystore.password = null
+	send.buffer.bytes = 131072
+	compression.type = none
+	metadata.fetch.timeout.ms = 60000
+	retry.backoff.ms = 100
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	buffer.memory = 33554432
+	timeout.ms = 30000
+	key.serializer = class org.apache.kafka.common.serialization.IntegerSerializer
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	ssl.trustmanager.algorithm = PKIX
+	block.on.buffer.full = false
+	ssl.key.password = null
+	sasl.kerberos.min.time.before.relogin = 60000
+	connections.max.idle.ms = 540000
+	max.in.flight.requests.per.connection = 5
+	metrics.num.samples = 2
+	ssl.protocol = TLS
+	ssl.provider = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.1, TLSv1]
+	batch.size = 16384
+	ssl.keystore.location = null
+	ssl.cipher.suites = null
+	security.protocol = PLAINTEXT
+	max.request.size = 1048576
+	value.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	ssl.keymanager.algorithm = SunX509
+	metrics.sample.window.ms = 30000
+	partitioner.class = class org.apache.kafka.clients.producer.internals.DefaultPartitioner
+	linger.ms = 0
+
+2019-04-13 14:59:08,436 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name bufferpool-wait-time
+2019-04-13 14:59:08,444 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name buffer-exhausted-records
+2019-04-13 14:59:08,463 [DEBUG] [main] |180|Metadata                                .update||---Updated cluster metadata version 1 to Cluster(nodes = [localhost:9093 (id: -1 rack: null)], partitions = [])
+2019-04-13 14:59:08,477 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name connections-closed:
+2019-04-13 14:59:08,478 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name connections-created:
+2019-04-13 14:59:08,479 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name bytes-sent-received:
+2019-04-13 14:59:08,479 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name bytes-sent:
+2019-04-13 14:59:08,481 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name bytes-received:
+2019-04-13 14:59:08,482 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name select-time:
+2019-04-13 14:59:08,483 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name io-time:
+2019-04-13 14:59:08,493 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name batch-size
+2019-04-13 14:59:08,494 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name compression-rate
+2019-04-13 14:59:08,495 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name queue-time
+2019-04-13 14:59:08,496 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name request-time
+2019-04-13 14:59:08,498 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name produce-throttle-time
+2019-04-13 14:59:08,499 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name records-per-request
+2019-04-13 14:59:08,499 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name record-retries
+2019-04-13 14:59:08,500 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name errors
+2019-04-13 14:59:08,501 [DEBUG] [main] |296|Metrics                                 .sensor||---Added sensor with name record-size-max
+2019-04-13 14:59:08,507 [INFO ] [main] |178|ProducerConfig                          .logAll||---ProducerConfig values: 
+	metric.reporters = []
+	metadata.max.age.ms = 300000
+	reconnect.backoff.ms = 50
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	bootstrap.servers = [localhost:9093]
+	ssl.keystore.type = JKS
+	sasl.mechanism = GSSAPI
+	max.block.ms = 60000
+	interceptor.classes = null
+	ssl.truststore.password = null
+	client.id = DemoProducer
+	ssl.endpoint.identification.algorithm = null
+	request.timeout.ms = 30000
+	acks = 1
+	receive.buffer.bytes = 32768
+	ssl.truststore.type = JKS
+	retries = 0
+	ssl.truststore.location = null
+	ssl.keystore.password = null
+	send.buffer.bytes = 131072
+	compression.type = none
+	metadata.fetch.timeout.ms = 60000
+	retry.backoff.ms = 100
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	buffer.memory = 33554432
+	timeout.ms = 30000
+	key.serializer = class org.apache.kafka.common.serialization.IntegerSerializer
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	ssl.trustmanager.algorithm = PKIX
+	block.on.buffer.full = false
+	ssl.key.password = null
+	sasl.kerberos.min.time.before.relogin = 60000
+	connections.max.idle.ms = 540000
+	max.in.flight.requests.per.connection = 5
+	metrics.num.samples = 2
+	ssl.protocol = TLS
+	ssl.provider = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.1, TLSv1]
+	batch.size = 16384
+	ssl.keystore.location = null
+	ssl.cipher.suites = null
+	security.protocol = PLAINTEXT
+	max.request.size = 1048576
+	value.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	ssl.keymanager.algorithm = SunX509
+	metrics.sample.window.ms = 30000
+	partitioner.class = class org.apache.kafka.clients.producer.internals.DefaultPartitioner
+	linger.ms = 0
+
+2019-04-13 14:59:08,509 [WARN ] [main] |42|AppInfoParser                           .<clinit>||---Error while loading kafka-version.properties :null
+2019-04-13 14:59:08,510 [INFO ] [main] |83|AppInfoParser                           .<init>||---Kafka version : unknown
+2019-04-13 14:59:08,514 [INFO ] [main] |84|AppInfoParser                           .<init>||---Kafka commitId : unknown
+2019-04-13 14:59:08,516 [DEBUG] [main] |329|KafkaProducer                           .<init>||---Kafka producer started
+2019-04-13 14:59:08,517 [DEBUG] [kafka-producer-network-thread | DemoProducer] |121|Sender                                  .run||---Starting Kafka producer I/O thread.
+2019-04-13 14:59:08,564 [DEBUG] [kafka-producer-network-thread | DemoProducer] |650|NetworkClient                           .maybeUpdate||---初始化链接到节点： -1获取元数据
+2019-04-13 14:59:08,564 [DEBUG] [kafka-producer-network-thread | DemoProducer] |502|NetworkClient                           .initiateConnect||---初始化连接到节点，节点id= -1，节点ip： localhost，节点端口9093.
+2019-04-13 14:59:08,681 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node--1.bytes-sent
+2019-04-13 14:59:08,682 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node--1.bytes-received
+2019-04-13 14:59:08,683 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node--1.latency
+2019-04-13 14:59:08,684 [INFO ] [kafka-producer-network-thread | DemoProducer] |303|Selector                                .pollSelectionKeys||---channel连接成功：org.apache.kafka.common.network.KafkaChannel@9ffeb35, 是否快速链接：false
+2019-04-13 14:59:08,684 [DEBUG] [kafka-producer-network-thread | DemoProducer] |482|NetworkClient                           .handleConnections||---成功连接上节点：-1
+2019-04-13 14:59:08,726 [DEBUG] [kafka-producer-network-thread | DemoProducer] |646|NetworkClient                           .maybeUpdate||---Sending metadata request {topics=[test]} to node -1
+2019-04-13 14:59:08,726 [INFO ] [kafka-producer-network-thread | DemoProducer] |245|NetworkClient                           .doSend||---发送请求，添加到kafkaChannel#send字段，同时加入inFlightRequests：ClientRequest(expectResponse=true, callback=null, request=RequestSend(header={api_key=3,api_version=1,correlation_id=0,client_id=DemoProducer}, body={topics=[test]}), isInitiatedByNetworkClient, createdTimeMs=1555138748688, sendTimeMs=0)
+2019-04-13 14:59:08,727 [INFO ] [kafka-producer-network-thread | DemoProducer] |322|Selector                                .pollSelectionKeys||---channel可写：org.apache.kafka.common.network.KafkaChannel@9ffeb35
+2019-04-13 14:59:08,732 [INFO ] [kafka-producer-network-thread | DemoProducer] |314|Selector                                .pollSelectionKeys||---channel可读：org.apache.kafka.common.network.KafkaChannel@9ffeb35
+2019-04-13 14:59:08,764 [DEBUG] [kafka-producer-network-thread | DemoProducer] |180|Metadata                                .update||---Updated cluster metadata version 2 to Cluster(nodes = [localhost:9093 (id: 1 rack: null)], partitions = [Partition(topic = test, partition = 0, leader = 1, replicas = [1,], isr = [1,]])
+2019-04-13 14:59:08,784 [INFO ] [kafka-producer-network-thread | DemoProducer] |159|NetworkClient                           .ready||---NetworkClient.ready时初始化连接
+2019-04-13 14:59:08,784 [DEBUG] [kafka-producer-network-thread | DemoProducer] |502|NetworkClient                           .initiateConnect||---初始化连接到节点，节点id= 1，节点ip： localhost，节点端口9093.
+2019-04-13 14:59:08,786 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node-1.bytes-sent
+2019-04-13 14:59:08,788 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node-1.bytes-received
+2019-04-13 14:59:08,789 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node-1.latency
+2019-04-13 14:59:08,792 [INFO ] [kafka-producer-network-thread | DemoProducer] |303|Selector                                .pollSelectionKeys||---channel连接成功：org.apache.kafka.common.network.KafkaChannel@1a4adce3, 是否快速链接：false
+2019-04-13 14:59:08,792 [DEBUG] [kafka-producer-network-thread | DemoProducer] |482|NetworkClient                           .handleConnections||---成功连接上节点：1
+2019-04-13 14:59:08,793 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.records-per-batch
+2019-04-13 14:59:08,794 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.bytes
+2019-04-13 14:59:08,796 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.compression-rate
+2019-04-13 14:59:08,797 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.record-retries
+2019-04-13 14:59:08,798 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.record-errors
+2019-04-13 14:59:08,801 [INFO ] [kafka-producer-network-thread | DemoProducer] |245|NetworkClient                           .doSend||---发送请求，添加到kafkaChannel#send字段，同时加入inFlightRequests：ClientRequest(expectResponse=true, callback=org.apache.kafka.clients.producer.internals.Sender$1@4ab57249, request=RequestSend(header={api_key=0,api_version=2,correlation_id=1,client_id=DemoProducer}, body={acks=1,timeout=30000,topic_data=[{topic=test,data=[{partition=0,record_set=java.nio.HeapByteBuffer[pos=0 lim=59 cap=16384]}]}]}), createdTimeMs=1555138748793, sendTimeMs=0)
+2019-04-13 14:59:08,802 [INFO ] [kafka-producer-network-thread | DemoProducer] |322|Selector                                .pollSelectionKeys||---channel可写：org.apache.kafka.common.network.KafkaChannel@1a4adce3
+2019-04-13 14:59:08,805 [INFO ] [kafka-producer-network-thread | DemoProducer] |314|Selector                                .pollSelectionKeys||---channel可读：org.apache.kafka.common.network.KafkaChannel@1a4adce3
+2019-04-13 14:59:10,789 [INFO ] [kafka-producer-network-thread | DemoProducer] |245|NetworkClient                           .doSend||---发送请求，添加到kafkaChannel#send字段，同时加入inFlightRequests：ClientRequest(expectResponse=true, callback=org.apache.kafka.clients.producer.internals.Sender$1@18ce051d, request=RequestSend(header={api_key=0,api_version=2,correlation_id=2,client_id=DemoProducer}, body={acks=1,timeout=30000,topic_data=[{topic=test,data=[{partition=0,record_set=java.nio.HeapByteBuffer[pos=0 lim=59 cap=16384]}]}]}), createdTimeMs=1555138750789, sendTimeMs=0)
+2019-04-13 14:59:10,789 [INFO ] [kafka-producer-network-thread | DemoProducer] |322|Selector                                .pollSelectionKeys||---channel可写：org.apache.kafka.common.network.KafkaChannel@1a4adce3
+2019-04-13 14:59:10,791 [INFO ] [kafka-producer-network-thread | DemoProducer] |314|Selector                                .pollSelectionKeys||---channel可读：org.apache.kafka.common.network.KafkaChannel@1a4adce3
+2019-04-13 14:59:12,789 [INFO ] [kafka-producer-network-thread | DemoProducer] |245|NetworkClient                           .doSend||---发送请求，添加到kafkaChannel#send字段，同时加入inFlightRequests：ClientRequest(expectResponse=true, callback=org.apache.kafka.clients.producer.internals.Sender$1@65a2ef2c, request=RequestSend(header={api_key=0,api_version=2,correlation_id=3,client_id=DemoProducer}, body={acks=1,timeout=30000,topic_data=[{topic=test,data=[{partition=0,record_set=java.nio.HeapByteBuffer[pos=0 lim=59 cap=16384]}]}]}), createdTimeMs=1555138752789, sendTimeMs=0)
+2019-04-13 14:59:12,790 [INFO ] [kafka-producer-network-thread | DemoProducer] |322|Selector                                .pollSelectionKeys||---channel可写：org.apache.kafka.common.network.KafkaChannel@1a4adce3
+2019-04-13 14:59:12,791 [INFO ] [kafka-producer-network-thread | DemoProducer] |314|Selector                                .pollSelectionKeys||---channel可读：org.apache.kafka.common.network.KafkaChannel@1a4adce3

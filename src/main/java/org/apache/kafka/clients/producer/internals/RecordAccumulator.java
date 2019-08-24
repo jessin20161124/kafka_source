@@ -12,14 +12,8 @@
  */
 package org.apache.kafka.clients.producer.internals;
 
-import java.util.Iterator;
-
 import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.common.Cluster;
-import org.apache.kafka.common.MetricName;
-import org.apache.kafka.common.Node;
-import org.apache.kafka.common.PartitionInfo;
-import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.*;
 import org.apache.kafka.common.metrics.Measurable;
 import org.apache.kafka.common.metrics.MetricConfig;
 import org.apache.kafka.common.metrics.Metrics;
@@ -36,15 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -305,7 +291,7 @@ public final class RecordAccumulator {
         for (Map.Entry<TopicPartition, Deque<RecordBatch>> entry : this.batches.entrySet()) {
             TopicPartition part = entry.getKey();
             Deque<RecordBatch> deque = entry.getValue();
-
+            // TODO 必须找到每个分区的leader，这个通过网络请求得到
             Node leader = cluster.leaderFor(part);
             if (leader == null) {
                 unknownLeadersExist = true;
@@ -351,6 +337,8 @@ public final class RecordAccumulator {
     }
 
     /**
+     * 抽取
+     * 方法参数较多时，换行
      * Drain all the data for the given nodes and collate them into a list of batches that will fit within the specified
      * size on a per-node basis. This method attempts to avoid choosing the same topic-node over and over.
      * 
@@ -370,6 +358,7 @@ public final class RecordAccumulator {
         Map<Integer, List<RecordBatch>> batches = new HashMap<>();
         for (Node node : nodes) {
             int size = 0;
+            // 获取到的是该节点的主分区列表？？？
             List<PartitionInfo> parts = cluster.partitionsForNode(node.id());
             List<RecordBatch> ready = new ArrayList<>();
             /* to make starvation less likely this loop doesn't start at 0 */

@@ -99,7 +99,7 @@ public class NioNonBlockingHttpClient {
         InetSocketAddress remote = (InetSocketAddress) channel.socket().getRemoteSocketAddress();
         String host = remote.getHostName();
         int port = remote.getPort();
-        logger.info(String.format("访问地址: {}:{} 连接成功!", host, port));
+        logger.info("访问地址: {}:{} 连接成功!", host, port);
         // 只关注写事件
         key.interestOps(SelectionKey.OP_WRITE);
     }

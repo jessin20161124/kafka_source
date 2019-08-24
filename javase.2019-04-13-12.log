@@ -1,0 +1,15 @@
+2019-04-13 13:00:21,362 [DEBUG] [kafka-producer-network-thread | DemoProducer] |180|Metadata                                .update||---Updated cluster metadata version 2 to Cluster(nodes = [localhost:9093 (id: 1 rack: null)], partitions = [Partition(topic = test, partition = 0, leader = 1, replicas = [1,], isr = [1,]])
+2019-04-13 13:01:17,797 [DEBUG] [kafka-producer-network-thread | DemoProducer] |650|NetworkClient                           .maybeUpdate||---初始化链接到节点： 1获取元数据
+2019-04-13 13:01:17,798 [DEBUG] [kafka-producer-network-thread | DemoProducer] |502|NetworkClient                           .initiateConnect||---初始化连接到节点，节点id= 1，节点ip： localhost，节点端口9093.
+2019-04-13 13:01:17,801 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node-1.bytes-sent
+2019-04-13 13:01:17,802 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node-1.bytes-received
+2019-04-13 13:01:17,802 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name node-1.latency
+2019-04-13 13:01:17,803 [INFO ] [kafka-producer-network-thread | DemoProducer] |303|Selector                                .pollSelectionKeys||---channel连接成功：org.apache.kafka.common.network.KafkaChannel@1e366ffb, 是否快速链接：false
+2019-04-13 13:01:17,804 [DEBUG] [kafka-producer-network-thread | DemoProducer] |482|NetworkClient                           .handleConnections||---成功连接上节点：1
+2019-04-13 13:01:17,817 [DEBUG] [kafka-producer-network-thread | DemoProducer] |646|NetworkClient                           .maybeUpdate||---Sending metadata request {topics=[test]} to node 1
+2019-04-13 13:01:17,817 [INFO ] [kafka-producer-network-thread | DemoProducer] |245|NetworkClient                           .doSend||---发送请求，添加到kafkaChannel#send字段，同时加入inFlightRequests：ClientRequest(expectResponse=true, callback=null, request=RequestSend(header={api_key=3,api_version=1,correlation_id=1,client_id=DemoProducer}, body={topics=[test]}), isInitiatedByNetworkClient, createdTimeMs=1555131677804, sendTimeMs=0)
+2019-04-13 13:01:17,819 [INFO ] [kafka-producer-network-thread | DemoProducer] |322|Selector                                .pollSelectionKeys||---channel可写：org.apache.kafka.common.network.KafkaChannel@1e366ffb
+2019-04-13 13:01:17,821 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.records-per-batch
+2019-04-13 13:01:17,822 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.bytes
+2019-04-13 13:01:17,823 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.compression-rate
+2019-04-13 13:01:17,824 [DEBUG] [kafka-producer-network-thread | DemoProducer] |296|Metrics                                 .sensor||---Added sensor with name topic.test.record-retries

@@ -1,0 +1,8 @@
+2019-07-07 22:15:20,960 [INFO ] [main] |45|NioNonBlockingHttpServer                .<init>||---开始监听：/127.0.0.1:11111
+2019-07-07 22:15:52,132 [INFO ] [main] |75|NioNonBlockingHttpServer                .select||---selectionKey为：[sun.nio.ch.SelectionKeyImpl@649d209a]
+2019-07-07 22:15:52,134 [INFO ] [main] |95|NioNonBlockingHttpClient                .connect||---收到连接事件
+2019-07-07 22:15:52,148 [INFO ] [main] |102|NioNonBlockingHttpClient                .connect||---访问地址: {}:{} 连接成功!
+2019-07-07 22:15:52,152 [INFO ] [main] |75|NioNonBlockingHttpServer                .select||---selectionKey为：[sun.nio.ch.SelectionKeyImpl@66d33a]
+2019-07-07 22:15:52,154 [INFO ] [main] |105|NioNonBlockingHttpServer                .select||---接收到客户端：/127.0.0.1:59608的消息：客服端上线了
+2019-07-07 22:15:52,156 [INFO ] [main] |75|NioNonBlockingHttpServer                .select||---selectionKey为：[sun.nio.ch.SelectionKeyImpl@66d33a]
+2019-07-07 22:15:52,157 [INFO ] [main] |116|NioNonBlockingHttpServer                .select||---向客户端：/127.0.0.1:59608 回复：我退出了
