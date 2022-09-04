@@ -63,6 +63,7 @@ public final class Cluster {
         for (Node node : nodes)
             this.nodesById.put(node.id(), node);
 
+        // todo 含有每个partition的详细信息，包括leader节点，所有副本节点，ISR节点，该分区可能暂时没有leader节点
         // index the partitions by topic/partition for quick lookup
         this.partitionsByTopicPartition = new HashMap<>(partitions.size());
         for (PartitionInfo p : partitions)
@@ -92,14 +93,17 @@ public final class Cluster {
         for (Map.Entry<String, List<PartitionInfo>> entry : partsForTopic.entrySet()) {
             String topic = entry.getKey();
             List<PartitionInfo> partitionList = entry.getValue();
+            // todo 每个topic的所有分区，可能某个分区暂时没有leader节点
             this.partitionsByTopic.put(topic, Collections.unmodifiableList(partitionList));
             List<PartitionInfo> availablePartitions = new ArrayList<>();
             for (PartitionInfo part : partitionList) {
                 if (part.leader() != null)
                     availablePartitions.add(part);
             }
+            // todo 每个topic有leader节点的分区
             this.availablePartitionsByTopic.put(topic, Collections.unmodifiableList(availablePartitions));
         }
+        // todo 该节点当前拥有的leader分区
         this.partitionsByNode = new HashMap<>(partsForNode.size());
         for (Map.Entry<Integer, List<PartitionInfo>> entry : partsForNode.entrySet())
             this.partitionsByNode.put(entry.getKey(), Collections.unmodifiableList(entry.getValue()));
@@ -175,6 +179,7 @@ public final class Cluster {
     }
 
     /**
+     * todo 每个topic的所有分区，可能某个分区暂时没有leader节点
      * Get the list of partitions for this topic
      * @param topic The topic name
      * @return A list of partitions

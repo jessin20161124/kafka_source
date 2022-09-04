@@ -127,6 +127,7 @@ public class Selector implements Selectable {
     }
 
     /**
+     * todo 以id为单位，与地址无关，也就是一个address可以建立多个连接
      * Begin connecting to the given address and add the connection to this nioSelector associated with the given id
      * number.
      * <p>
@@ -291,6 +292,7 @@ public class Selector implements Selectable {
 
             // register all per-connection metrics at once
             sensors.maybeRegisterConnectionMetrics(channel.id());
+            // todo 刷新最近活跃时间，防止长时间不活跃被关闭
             lruConnections.put(channel.id(), currentTimeNanos);
 
             try {

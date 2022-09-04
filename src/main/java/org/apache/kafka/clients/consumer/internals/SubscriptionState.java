@@ -101,6 +101,7 @@ public class SubscriptionState {
         this.defaultResetStrategy = defaultResetStrategy;
         this.subscription = new HashSet<>();
         this.userAssignment = new HashSet<>();
+        // 当前KafkaConsumer分配的消费分区
         this.assignment = new HashMap<>();
         this.groupSubscription = new HashSet<>();
         this.needsPartitionAssignment = false;
@@ -123,7 +124,9 @@ public class SubscriptionState {
     public void changeSubscription(Collection<String> topicsToSubscribe) {
         if (!this.subscription.equals(new HashSet<>(topicsToSubscribe))) {
             this.subscription.clear();
+            // 订阅这些topic
             this.subscription.addAll(topicsToSubscribe);
+            // 如果当前是consumer follower，则跟当前KafkaConsumer订阅的topic一样，如果是leader，则是整个group订阅的topic
             this.groupSubscription.addAll(topicsToSubscribe);
             this.needsPartitionAssignment = true;
 
@@ -305,7 +308,9 @@ public class SubscriptionState {
         Map<TopicPartition, OffsetAndMetadata> allConsumed = new HashMap<>();
         for (Map.Entry<TopicPartition, TopicPartitionState> entry : assignment.entrySet()) {
             TopicPartitionState state = entry.getValue();
+            // todo position，当前消费到的为止，注意，未必已经提交了
             if (state.hasValidPosition())
+                // metadata为空
                 allConsumed.put(entry.getKey(), new OffsetAndMetadata(state.position));
         }
         return allConsumed;
@@ -379,7 +384,9 @@ public class SubscriptionState {
     }
 
     private static class TopicPartitionState {
+        // 最近这个分区的消费位置
         private Long position; // last consumed position
+        // 最近这个分区的提交位置
         private OffsetAndMetadata committed;  // last committed position
         private boolean paused;  // whether this partition has been paused by the user
         private OffsetResetStrategy resetStrategy;  // the strategy to use if the offset needs resetting

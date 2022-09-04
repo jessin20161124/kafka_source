@@ -944,6 +944,7 @@ public class KafkaConsumer<K, V> implements Consumer<K, V> {
                     // NOTE: since the consumed position has already been updated, we must not allow
                     // wakeups or any other errors to be triggered prior to returning the fetched records.
                     // Additionally, pollNoWakeup does not allow automatic commits to get triggered.
+                    // todo 外层又触发网络请求，这里没有等待，同步进行，尽量发出去
                     fetcher.sendFetches();
                     client.pollNoWakeup();
 
@@ -971,15 +972,17 @@ public class KafkaConsumer<K, V> implements Consumer<K, V> {
      */
     private Map<TopicPartition, List<ConsumerRecord<K, V>>> pollOnce(long timeout) {
         // TODO: Sub-requests should take into account the poll timeout (KAFKA-1894)
+        // todo 保证该group coordinator准备好了
         coordinator.ensureCoordinatorReady();
 
         // ensure we have partitions assigned if we expect to
+        // todo 等待join group请求发送出去，阻塞得到当前consumer分区订阅结果
         if (subscriptions.partitionsAutoAssigned())
             coordinator.ensurePartitionAssignment();
 
         // fetch positions if we have partitions we're subscribed to that we
         // don't know the offset for
-        // 第一次，更新每个分区的position和committed，而且position = committed
+        // todo 第一次，更新每个分区的position和committed，而且position = committed
         if (!subscriptions.hasAllFetchPositions()) {
             log.info("获取读取Position的分区：{}", this.subscriptions.missingFetchPositions());
             updateFetchPositions(this.subscriptions.missingFetchPositions());
@@ -987,9 +990,10 @@ public class KafkaConsumer<K, V> implements Consumer<K, V> {
 
         long now = time.milliseconds();
 
+        // todo 执行定时任务
         // execute delayed tasks (e.g. autocommits and heartbeats) prior to fetching records
         client.executeDelayedTasks(now);
-
+        // todo 如果上一次拉取有剩，直接使用，不会发起网络请求
         // init any new fetches (won't resend pending fetches)
         Map<TopicPartition, List<ConsumerRecord<K, V>>> records = fetcher.fetchedRecords();
 
@@ -997,8 +1001,9 @@ public class KafkaConsumer<K, V> implements Consumer<K, V> {
         // then just return it immediately
         if (!records.isEmpty())
             return records;
-
+        // 设置发送网络请求，抓取的起点是position，todo 需要定期上报position，更新commit offset
         fetcher.sendFetches();
+        // 发送出去
         client.poll(timeout, now);
         return fetcher.fetchedRecords();
     }
@@ -1406,8 +1411,9 @@ public class KafkaConsumer<K, V> implements Consumer<K, V> {
      */
     private void updateFetchPositions(Set<TopicPartition> partitions) {
         // refresh commits for all assigned partitions
+        // todo 启动时获取到订阅分区已经commit的信息，这里没有设置position...
         coordinator.refreshCommittedOffsetsIfNeeded();
-
+        // todo 对于未消费过的分区，使用latest，抓取最新的分区offset，设置的是position;对于已经commit过的，使用commit信息更新position
         // then do any offset lookups in case some positions are not known
         fetcher.updateFetchPositions(partitions);
     }

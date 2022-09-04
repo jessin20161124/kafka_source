@@ -75,6 +75,7 @@ import org.apache.kafka.common.TopicPartition;
 public interface ConsumerRebalanceListener {
 
     /**
+     *             // todo 老的分配的分区撤销了
      * A callback method the user can implement to provide handling of offset commits to a customized store on the start
      * of a rebalance operation. This method will be called before a rebalance operation starts and after the consumer
      * stops fetching data. It is recommended that offsets should be committed in this callback to either Kafka or a

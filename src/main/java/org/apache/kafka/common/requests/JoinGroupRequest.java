@@ -66,6 +66,7 @@ public class JoinGroupRequest extends AbstractRequest {
                             String protocolType,
                             List<ProtocolMetadata> groupProtocols) {
         super(new Struct(CURRENT_SCHEMA));
+        // todo 其实就是bean序列化和反序列化了，设置到struct上，方便序列化，写入到网络
         struct.set(GROUP_ID_KEY_NAME, groupId);
         struct.set(SESSION_TIMEOUT_KEY_NAME, sessionTimeout);
         struct.set(MEMBER_ID_KEY_NAME, memberId);

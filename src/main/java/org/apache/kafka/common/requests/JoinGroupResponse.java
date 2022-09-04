@@ -92,17 +92,21 @@ public class JoinGroupResponse extends AbstractRequestResponse {
 
     public JoinGroupResponse(Struct struct) {
         super(struct);
+        // 当前group所有member
         members = new HashMap<>();
 
         for (Object memberDataObj : struct.getArray(MEMBERS_KEY_NAME)) {
             Struct memberData = (Struct) memberDataObj;
             String memberId = memberData.getString(MEMBER_ID_KEY_NAME);
+            // 该group protocol分区策略下，对应的topic list + user_data
             ByteBuffer memberMetadata = memberData.getBytes(MEMBER_METADATA_KEY_NAME);
             members.put(memberId, memberMetadata);
         }
         errorCode = struct.getShort(ERROR_CODE_KEY_NAME);
         generationId = struct.getInt(GENERATION_ID_KEY_NAME);
+        // group protocol是分区策略的name，例如roundrobin/range, 见PartitionAssignor#name()
         groupProtocol = struct.getString(GROUP_PROTOCOL_KEY_NAME);
+        // 如果memberId == leaderId，则当前实例是leader
         memberId = struct.getString(MEMBER_ID_KEY_NAME);
         leaderId = struct.getString(LEADER_ID_KEY_NAME);
     }

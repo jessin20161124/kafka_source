@@ -80,6 +80,8 @@ final class InFlightRequests {
 
     /**
      * Can we send more requests to this node?
+     * todo 看队头是否发送了，队头是最新的待发送的数据，队尾是最老发送完等待响应的数据。只有上一个发送完毕了，才可以放下一个。
+     *      最多允许maxInFlightRequestsPerConnection个在该节点等待响应
      * 
      * @param node Node in question
      * @return true iff we have no requests still being sent to the given node

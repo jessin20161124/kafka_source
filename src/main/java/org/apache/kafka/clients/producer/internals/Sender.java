@@ -120,6 +120,7 @@ public class Sender implements Runnable {
     public void run() {
         log.debug("Starting Kafka producer I/O thread.");
 
+        // todo 死循环，running可以改，但是可能还在休眠，可以唤醒，
         // main loop, runs until close is called
         while (running) {
             try {
@@ -164,6 +165,7 @@ public class Sender implements Runnable {
     void run(long now) {
         Cluster cluster = metadata.fetch();
         // get the list of partitions with data ready to send
+        // todo 缓冲区准备好了的节点，例如过期了，满了
         RecordAccumulator.ReadyCheckResult result = this.accumulator.ready(cluster, now);
 
         // if there are any partitions whose leaders are not known yet, force metadata update
@@ -175,6 +177,7 @@ public class Sender implements Runnable {
         long notReadyTimeout = Long.MAX_VALUE;
         while (iter.hasNext()) {
             Node node = iter.next();
+            // todo 网络层准备好的节点，例如上一个RequestSend已经发送出去了，再过滤一遍。。。
             if (!this.client.ready(node, now)) {
                 iter.remove();
                 notReadyTimeout = Math.min(notReadyTimeout, this.client.connectionDelay(node, now));
@@ -351,7 +354,7 @@ public class Sender implements Runnable {
                 handleProduceResponse(response, recordsByPartition, time.milliseconds());
             }
         };
-        // acks != 0表示需要回复，acks == -1表示需要所有slave机器同步？？？
+        // acks != 0表示需要回复，acks == -1表示需要所有isr slave机器同步
         return new ClientRequest(now, acks != 0, send, callback);
     }
 

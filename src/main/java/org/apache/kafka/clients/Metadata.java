@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * todo 线程安全，维护cluster信息
  * A class encapsulating some of the logic around metadata.
  * <p>
  * This class is shared by the client thread (for partitioning) and the background sender thread.
@@ -170,12 +171,15 @@ public final class Metadata {
         this.lastSuccessfulRefreshMs = now;
         this.version += 1;
 
+        // todo 通信所有的listener
         for (Listener listener: listeners)
             listener.onMetadataUpdate(cluster);
 
+        // todo 更新cluster信息，可能过滤当前关注的topic的信息
         // Do this after notifying listeners as subscribed topics' list can be changed by listeners
         this.cluster = this.needMetadataForAllTopics ? getClusterForCurrentTopics(cluster) : cluster;
 
+        // todo 唤醒所有阻塞的线程
         notifyAll();
         log.debug("Updated cluster metadata version {} to {}", this.version, this.cluster);
     }
@@ -252,7 +256,7 @@ public final class Metadata {
         if (cluster != null) {
             unauthorizedTopics.addAll(cluster.unauthorizedTopics());
             unauthorizedTopics.retainAll(this.topics);
-
+            // todo 只关注当前topic的meta信息
             for (String topic : this.topics) {
                 partitionInfos.addAll(cluster.partitionsForTopic(topic));
             }

@@ -126,6 +126,7 @@ public class Fetcher<K, V> {
      */
     public void sendFetches() {
         for (Map.Entry<Node, FetchRequest> fetchEntry: createFetchRequests().entrySet()) {
+            // 给分配给自己消费的分区，对应的各个leader节点，发送fetch请求
             final FetchRequest request = fetchEntry.getValue();
             client.send(fetchEntry.getKey(), ApiKeys.FETCH, request)
                     .addListener(new RequestFutureListener<ClientResponse>() {
@@ -139,6 +140,7 @@ public class Fetcher<K, V> {
                                 TopicPartition partition = entry.getKey();
                                 long fetchOffset = request.fetchData().get(partition).offset;
                                 FetchResponse.PartitionData fetchData = entry.getValue();
+                                // todo 放到缓冲区中
                                 completedFetches.add(new CompletedFetch(partition, fetchOffset, fetchData, metricAggregator));
                             }
 
@@ -162,6 +164,7 @@ public class Fetcher<K, V> {
     public void updateFetchPositions(Set<TopicPartition> partitions) {
         // reset the fetch position to the committed position
         for (TopicPartition tp : partitions) {
+            // 如果是可抓取的，表示已经有了消费的position，无需更新
             if (!subscriptions.isAssigned(tp) || subscriptions.isFetchable(tp))
                 continue;
 
@@ -169,10 +172,11 @@ public class Fetcher<K, V> {
             if (subscriptions.isOffsetResetNeeded(tp)) {
                 resetOffset(tp);
             } else if (subscriptions.committed(tp) == null) {
-                // there's no committed position, so we need to reset with the default strategy
+                // there's no committed position, so we need to reset with the default strategy，todo 默认是latest
                 subscriptions.needOffsetReset(tp);
                 resetOffset(tp);
             } else {
+                // todo 对于已经commit过的，使用commit信息更新position
                 long committed = subscriptions.committed(tp).offset();
                 log.debug("Resetting offset for partition {} to the committed offset {}", tp, committed);
                 subscriptions.seek(tp, committed);
@@ -190,6 +194,7 @@ public class Fetcher<K, V> {
     }
 
     /**
+     * 获取该集群的topic的cluster信息，这里是每个topic有leader节点的partition list
      * Get metadata for all topics present in Kafka cluster
      *
      * @param request The MetadataRequest to send
@@ -216,6 +221,7 @@ public class Fetcher<K, V> {
                 Cluster cluster = response.cluster();
 
                 Set<String> unauthorizedTopics = cluster.unauthorizedTopics();
+                // todo why error
                 if (!unauthorizedTopics.isEmpty())
                     throw new TopicAuthorizationException(unauthorizedTopics);
 
@@ -271,6 +277,7 @@ public class Fetcher<K, V> {
      * @return A future that indicates result of sent metadata request
      */
     private RequestFuture<ClientResponse> sendMetadataRequest(MetadataRequest request) {
+        // todo 跟NetworkClient更新metadata很类似
         final Node node = client.leastLoadedNode();
         if (node == null)
             return RequestFuture.noBrokersAvailable();
@@ -285,6 +292,7 @@ public class Fetcher<K, V> {
      * @throws org.apache.kafka.clients.consumer.NoOffsetForPartitionException If no offset reset strategy is defined
      */
     private void resetOffset(TopicPartition partition) {
+        // 对应一个分区，重试更新消费的position，根据最早或者最新一条进行更新
         OffsetResetStrategy strategy = subscriptions.resetStrategy(partition);
         final long timestamp;
         if (strategy == OffsetResetStrategy.EARLIEST)
@@ -328,6 +336,7 @@ public class Fetcher<K, V> {
     }
 
     /**
+     * todo 从本地缓冲抓取
      * Return the fetched records, empty the record buffer and update the consumed position.
      *
      * NOTE: returning empty records guarantees the consumed position are NOT updated.
@@ -337,15 +346,18 @@ public class Fetcher<K, V> {
      *         the defaultResetPolicy is NONE
      */
     public Map<TopicPartition, List<ConsumerRecord<K, V>>> fetchedRecords() {
+        // subscriptions很重要的状态
         if (this.subscriptions.partitionAssignmentNeeded()) {
             return Collections.emptyMap();
         } else {
             Map<TopicPartition, List<ConsumerRecord<K, V>>> drained = new HashMap<>();
             int recordsRemaining = maxPollRecords;
+            // 一个batch为一个tp抓取的数据
             Iterator<CompletedFetch> completedFetchesIterator = completedFetches.iterator();
 
             while (recordsRemaining > 0) {
                 if (nextInLineRecords == null || nextInLineRecords.isEmpty()) {
+                    // nextInLineRecords也是缓冲，可能是某个tp剩下的，因为要控制一次性不能超过maxPollRecords条
                     if (!completedFetchesIterator.hasNext())
                         break;
 
@@ -378,6 +390,7 @@ public class Fetcher<K, V> {
                 log.debug("Not returning fetched records for assigned partition {} since it is no longer fetchable", partitionRecords.partition);
             } else if (partitionRecords.fetchOffset == position) {
                 // we are ensured to have at least one record since we already checked for emptiness
+                // 最多取maxRecords条
                 List<ConsumerRecord<K, V>> partRecords = partitionRecords.take(maxRecords);
                 long nextOffset = partRecords.get(partRecords.size() - 1).offset() + 1;
 
@@ -391,7 +404,7 @@ public class Fetcher<K, V> {
                 } else {
                     records.addAll(partRecords);
                 }
-
+                // todo todo !!!更新下一次抓取的位置，注意partRecords可能还有剩余！注意上面+1了。给用户后，nextInRecords就删除这些数据了
                 subscriptions.position(partitionRecords.partition, nextOffset);
                 return partRecords.size();
             } else {
@@ -468,9 +481,13 @@ public class Fetcher<K, V> {
     }
 
     private Set<TopicPartition> fetchablePartitions() {
+        // 获取分配给自己的所有的分区，该partition有消费起始位置position，且该partition非pause状态
+        // todo 如果已经抓取到本地，但是还没消费完，则需要把本地未消费完的先排除掉
         Set<TopicPartition> fetchable = subscriptions.fetchablePartitions();
+        // 取了一点的
         if (nextInLineRecords != null && !nextInLineRecords.isEmpty())
             fetchable.remove(nextInLineRecords.partition);
+        // todo 完全未取的
         for (CompletedFetch completedFetch : completedFetches)
             fetchable.remove(completedFetch.partition);
         return fetchable;
@@ -487,15 +504,17 @@ public class Fetcher<K, V> {
         for (TopicPartition partition : fetchablePartitions()) {
             Node node = cluster.leaderFor(partition);
             if (node == null) {
+                // 暂时没有leader，设置需要更新标志
                 metadata.requestUpdate();
             } else if (this.client.pendingRequestCount(node) == 0) {
+                // 该节点没有请求阻塞
                 // if there is a leader and no in-flight requests, issue a new fetch
                 Map<TopicPartition, FetchRequest.PartitionData> fetch = fetchable.get(node);
                 if (fetch == null) {
                     fetch = new HashMap<>();
                     fetchable.put(node, fetch);
                 }
-
+                // 从该分区上一次消费位置开始消费，抓取的大小为fetchSize，每个分取最多取fetchSize
                 long position = this.subscriptions.position(partition);
                 fetch.put(partition, new FetchRequest.PartitionData(position, this.fetchSize));
                 log.trace("Added fetch request for partition {} at offset {}", partition, position);
@@ -505,6 +524,7 @@ public class Fetcher<K, V> {
         // create the fetches
         Map<Node, FetchRequest> requests = new HashMap<>();
         for (Map.Entry<Node, Map<TopicPartition, FetchRequest.PartitionData>> entry : fetchable.entrySet()) {
+            // 从消费的分区的leader节点抓取数据
             Node node = entry.getKey();
             FetchRequest fetch = new FetchRequest(this.maxWaitMs, this.minBytes, entry.getValue());
             requests.put(node, fetch);
@@ -537,7 +557,7 @@ public class Fetcher<K, V> {
                             "the expected offset {}", tp, fetchOffset, position);
                     return null;
                 }
-
+                // todo 服务端返回的是已经解压缩的？？
                 ByteBuffer buffer = partition.recordSet;
                 MemoryRecords records = MemoryRecords.readableRecords(buffer);
                 List<ConsumerRecord<K, V>> parsed = new ArrayList<>();
@@ -582,6 +602,7 @@ public class Fetcher<K, V> {
                     log.debug("Discarding stale fetch response for partition {} since the fetched offset {}" +
                             "does not match the current offset {}", tp, fetchOffset, subscriptions.position(tp));
                 } else if (subscriptions.hasDefaultOffsetResetPolicy()) {
+                    // fetch的position跟本地的不一致了，可能发生了rebalance，需要使用latest重新设置下
                     log.info("Fetch offset {} is out of range for partition {}, resetting offset", fetchOffset, tp);
                     subscriptions.needOffsetReset(tp);
                 } else {
@@ -670,6 +691,7 @@ public class Fetcher<K, V> {
             Iterator<ConsumerRecord<K, V>> iterator = records.iterator();
             for (int i = 0; i < n; i++) {
                 res.add(iterator.next());
+                // todo 删除数据
                 iterator.remove();
             }
 

@@ -105,6 +105,7 @@ public class ConsumerNetworkClient implements Closeable {
     }
 
     private void put(Node node, ClientRequest request) {
+        // todo 仅仅是放到unsent map这个进行缓冲。等待poll发送出去
         List<ClientRequest> nodeUnsent = unsent.get(node);
         if (nodeUnsent == null) {
             nodeUnsent = new ArrayList<>();
@@ -210,19 +211,25 @@ public class ConsumerNetworkClient implements Closeable {
         int id = new Random(System.currentTimeMillis()).nextInt();
         log.info("不断轮循，尽力发送缓存的请求和获得响应，{}", id);
         // send all the requests we can send now
+        // todo 先将unsent map请求设置到KafkaChannel.send里
         trySend(now);
 
         // ensure we don't poll any longer than the deadline for
         // the next scheduled task
+        // todo 等待时间，不超过第一个快到时间的任务
         timeout = Math.min(timeout, delayedTasks.nextTimeout(now));
+        // todo client.poll，真正对网络进行读写，判断是否失联，以及连接成功，NetworkClient底层会维护这些状态
+        //  todo 同时收到响应时，会调用callback和唤醒阻塞的请求线程
         clientPoll(timeout, now);
         now = time.milliseconds();
 
         // handle any disconnects by failing the active requests. note that disconnects must
         // be checked immediately following poll since any subsequent call to client.ready()
         // will reset the disconnect status
+        // todo node失联了，将对应的unsent请求处理掉，设置为disconnected
         checkDisconnects(now);
 
+        // todo 如果为true，执行到时间点的超时任务
         // execute scheduled tasks
         if (executeDelayedTasks)
             delayedTasks.poll(now);
@@ -230,7 +237,7 @@ public class ConsumerNetworkClient implements Closeable {
         // try again to send requests since buffer space may have been
         // cleared or a connect finished in the poll
         trySend(now);
-
+        // todo 将等待超时的，unsentExpiryMs，设置timeoutException
         // fail requests that couldn't be sent if they have expired
         failExpiredRequests(now);
         log.info("轮循结束，{}", id);

@@ -49,6 +49,7 @@ public class RoundRobinAssignor extends AbstractPartitionAssignor {
         CircularIterator<String> assigner = new CircularIterator<>(Utils.sorted(subscriptions.keySet()));
         for (TopicPartition partition : allPartitionsSorted(partitionsPerTopic, subscriptions)) {
             final String topic = partition.topic();
+            // 每个tp分配给能消费的消费者，轮询，比较均衡
             while (!subscriptions.get(assigner.peek()).contains(topic))
                 assigner.next();
             assignment.get(assigner.next()).add(partition);
@@ -63,6 +64,7 @@ public class RoundRobinAssignor extends AbstractPartitionAssignor {
         for (List<String> subscription : subscriptions.values())
             topics.addAll(subscription);
 
+        // todo 构建所有topic_partition，每个topic的所有partition
         List<TopicPartition> allPartitions = new ArrayList<>();
         for (String topic : topics) {
             Integer numPartitionsForTopic = partitionsPerTopic.get(topic);

@@ -46,6 +46,7 @@ public class RangeAssignor extends AbstractPartitionAssignor {
     }
 
     private Map<String, List<String>> consumersPerTopic(Map<String, List<String>> consumerMetadata) {
+        // todo 每个topic有哪些消费者
         Map<String, List<String>> res = new HashMap<>();
         for (Map.Entry<String, List<String>> subscriptionEntry : consumerMetadata.entrySet()) {
             String consumerId = subscriptionEntry.getKey();
@@ -65,20 +66,26 @@ public class RangeAssignor extends AbstractPartitionAssignor {
 
         for (Map.Entry<String, List<String>> topicEntry : consumersPerTopic.entrySet()) {
             String topic = topicEntry.getKey();
+            // 当前topic的消费者list
             List<String> consumersForTopic = topicEntry.getValue();
 
+            // 当前topic的分区数
             Integer numPartitionsForTopic = partitionsPerTopic.get(topic);
             if (numPartitionsForTopic == null)
                 continue;
-
+            // 按照memberId字典序排序
             Collections.sort(consumersForTopic);
 
             int numPartitionsPerConsumer = numPartitionsForTopic / consumersForTopic.size();
             int consumersWithExtraPartition = numPartitionsForTopic % consumersForTopic.size();
 
             List<TopicPartition> partitions = AbstractPartitionAssignor.partitions(topic, numPartitionsForTopic);
+            // 10个分区，3个消费者，则消费者(0,1,2,3), (4,5,6), (7,8,9)
+            // 10个分区，4个消费者，则(0,1,2),(3,4,5),(6,7),(8,9)
+            // 余数往前每次分配一个
             for (int i = 0, n = consumersForTopic.size(); i < n; i++) {
                 int start = numPartitionsPerConsumer * i + Math.min(i, consumersWithExtraPartition);
+                // 额外的一个partition分配
                 int length = numPartitionsPerConsumer + (i + 1 > consumersWithExtraPartition ? 0 : 1);
                 assignment.get(consumersForTopic.get(i)).addAll(partitions.subList(start, start + length));
             }

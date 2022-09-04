@@ -115,7 +115,9 @@ public abstract class AbstractCoordinator implements Closeable {
         this.memberId = JoinGroupRequest.UNKNOWN_MEMBER_ID;
         this.groupId = groupId;
         this.coordinator = null;
+        // 默认心跳间隔是3s一次，超时间隔是30s
         this.sessionTimeoutMs = sessionTimeoutMs;
+        // todo 和coordinator的心跳超时时间，超过这个时间没有返回响应，则认为需要rejoin，进行re-balance（可能已经在进行中）
         this.heartbeat = new Heartbeat(this.sessionTimeoutMs, heartbeatIntervalMs, time.milliseconds());
         this.heartbeatTask = new HeartbeatTask();
         this.sensors = new GroupCoordinatorMetrics(metrics, metricGrpPrefix);
@@ -174,8 +176,11 @@ public abstract class AbstractCoordinator implements Closeable {
      * Block until the coordinator for this group is known and is ready to receive requests.
      */
     public void ensureCoordinatorReady() {
+        // 如果获取coordinator失败了，不断循环，直到不可重试为止
         while (coordinatorUnknown()) {
+            // todo 正常用法，future后，client.poll
             RequestFuture<Void> future = sendGroupCoordinatorRequest();
+            // 一直阻塞着，等待服务端返回响应coordinator
             client.poll(future);
 
             if (future.failed()) {
@@ -203,6 +208,7 @@ public abstract class AbstractCoordinator implements Closeable {
 
     /**
      * Ensure that the group is active (i.e. joined and synced)
+     * todo 核心方法，保证coordinator存在，且已经join & sync group，获得分区分配
      */
     public void ensureActiveGroup() {
         if (!needRejoin())
@@ -222,13 +228,14 @@ public abstract class AbstractCoordinator implements Closeable {
                 client.awaitPendingRequests(this.coordinator);
                 continue;
             }
-
+            // todo 不断发送join group请求
             RequestFuture<ByteBuffer> future = sendJoinGroupRequest();
             future.addListener(new RequestFutureListener<ByteBuffer>() {
                 @Override
                 public void onSuccess(ByteBuffer value) {
                     // handle join completion in the callback so that the callback will be invoked
                     // even if the consumer is woken up before finishing the rebalance
+                    // todo join group成功，返回分区分配结果
                     onJoinComplete(generation, memberId, protocol, value);
                     needsJoinPrepare = true;
                     heartbeatTask.reset();
@@ -240,6 +247,7 @@ public abstract class AbstractCoordinator implements Closeable {
                     // after having been woken up, the exception is ignored and we will rejoin
                 }
             });
+            // todo 正常用法，等待join group请求发送出去，return后，上面future也执行了，分区结果也就知道了
             client.poll(future);
 
             if (future.failed()) {
@@ -276,7 +284,7 @@ public abstract class AbstractCoordinator implements Closeable {
                 // awaiting a rebalance
                 return;
             }
-
+            // todo 如果心跳超时sessionTimeout，则清空coordinator，并重新给最小负载的node发起请求，要求返回该group的coordinator
             if (heartbeat.sessionTimeoutExpired(now)) {
                 // we haven't received a successful heartbeat in one session interval
                 // so mark the coordinator dead
@@ -298,6 +306,7 @@ public abstract class AbstractCoordinator implements Closeable {
                         requestInFlight = false;
                         long now = time.milliseconds();
                         heartbeat.receiveHeartbeat(now);
+                        // todo 如果一直收到心跳，一直按照interval发送心跳请求，又把任务加会等待队列。。类似scheduleAtFix()了，到下一个间隔
                         long nextHeartbeatTime = now + heartbeat.timeToNextHeartbeat(now);
                         client.schedule(HeartbeatTask.this, nextHeartbeatTime);
                     }
@@ -305,6 +314,7 @@ public abstract class AbstractCoordinator implements Closeable {
                     @Override
                     public void onFailure(RuntimeException e) {
                         requestInFlight = false;
+                        // todo 发送失败，进行退避，从这时刻计算起
                         client.schedule(HeartbeatTask.this, time.milliseconds() + retryBackoffMs);
                     }
                 });
@@ -324,6 +334,8 @@ public abstract class AbstractCoordinator implements Closeable {
 
         // send a join group request to the coordinator
         log.info("(Re-)joining group {}", groupId);
+        // todo 这个KafkaConsumer成员，memberId可能未分配，携带每个consumer支持的partition assignor list和对应的user metadata
+        //  todo 同时会带上对应的sessionTimeoutMs，这个时间是超时没有心跳回复的时间，认为coordinator死亡
         JoinGroupRequest request = new JoinGroupRequest(
                 groupId,
                 this.sessionTimeoutMs,
@@ -332,6 +344,7 @@ public abstract class AbstractCoordinator implements Closeable {
                 metadata());
 
         log.debug("发送加入组请求：({}) 到协调器 {}", request, this.coordinator);
+        // todo 底层其实是缓冲，并没有立马发送出去，通过selector不断轮询，也实现了异步future...有netty的雏形了，还能执行定时任务
         return client.send(coordinator, ApiKeys.JOIN_GROUP, request)
                 .compose(new JoinGroupResponseHandler());
     }
@@ -349,11 +362,16 @@ public abstract class AbstractCoordinator implements Closeable {
             Errors error = Errors.forCode(joinResponse.errorCode());
             if (error == Errors.NONE) {
                 log.debug("成功收到加入组请求的响应 {}: {}", groupId, joinResponse.toStruct());
+                // memberId/generation都从服务端来，分配给当前KafkaConsumer实例的memberId
                 AbstractCoordinator.this.memberId = joinResponse.memberId();
                 AbstractCoordinator.this.generation = joinResponse.generationId();
                 AbstractCoordinator.this.rejoinNeeded = false;
+                // group protocol是分区策略的name
                 AbstractCoordinator.this.protocol = joinResponse.groupProtocol();
                 sensors.joinLatency.record(response.requestLatencyMs());
+                // todo 需要唤醒外面的future，注意，这里是join group请求并响应成功后，再发送sync request，等sync响应后，才唤醒future，future设置的值为分配结果
+                //    ，当前consumer是group leader，也可能不是，由服务端分配，根据join group结果判断
+                //   join group成功后，对于leader，需要进行分区分配，coordinator会给出当前group所有的member信息。对于follower则返回空集合即可。马上发起sync请求，携带这些内容。
                 if (joinResponse.isLeader()) {
                     onJoinLeader(joinResponse).chain(future);
                 } else {
@@ -433,6 +451,7 @@ public abstract class AbstractCoordinator implements Closeable {
             if (error == Errors.NONE) {
                 log.info("Successfully joined group {} with generation {}", groupId, generation);
                 sensors.syncLatency.record(response.requestLatencyMs());
+                // todo 外层返回分配结果
                 future.complete(syncResponse.memberAssignment());
             } else {
                 AbstractCoordinator.this.rejoinNeeded = true;
@@ -475,6 +494,8 @@ public abstract class AbstractCoordinator implements Closeable {
             // create a group  metadata request
             log.info("缓存unsent，获取group coordinator请求：{} 给broker： {}", groupId, node);
             GroupCoordinatorRequest metadataRequest = new GroupCoordinatorRequest(this.groupId);
+            // todo 当发送coordinator成功拿到响应后，底层NetworkClient会先调用下面的compose逻辑，然后再唤醒外面使用的这个返回的future，
+            //      由compose的逻辑设置外面的结果，外面拿到的是第二个泛型的结果
             return client.send(node, ApiKeys.GROUP_COORDINATOR, metadataRequest)
                     .compose(new RequestFutureAdapter<ClientResponse, Void>() {
                         @Override
@@ -498,15 +519,17 @@ public abstract class AbstractCoordinator implements Closeable {
             // TODO: this needs to be better handled in KAFKA-1935
             Errors error = Errors.forCode(groupCoordinatorResponse.errorCode());
             if (error == Errors.NONE) {
+                // todo 避免id冲突了，所以一个ip:port可能会有两个连接
                 this.coordinator = new Node(Integer.MAX_VALUE - groupCoordinatorResponse.node().id(),
                         groupCoordinatorResponse.node().host(),
                         groupCoordinatorResponse.node().port());
 
                 log.info("发现组：{}的协调器： {}", groupId, coordinator);
-
+                // todo 立马建连
                 client.tryConnect(coordinator);
 
                 // start sending heartbeats only if we have a valid generation
+                // 如果是网络抖动造成的断连，则generation可能一直有效
                 if (generation > 0)
                     heartbeatTask.reset();
                 future.complete(null);
@@ -563,6 +586,7 @@ public abstract class AbstractCoordinator implements Closeable {
         if (!coordinatorUnknown() && generation > 0) {
             // this is a minimal effort attempt to leave the group. we do not
             // attempt any resending if the request fails or times out.
+            // todo 安全退出分组，最好告知对方。类似dubbo provider退出时，通过消息告知对方，但是只告知一次，不重试
             sendLeaveGroupRequest();
         }
 
@@ -610,6 +634,7 @@ public abstract class AbstractCoordinator implements Closeable {
      * Send a heartbeat request now (visible only for testing).
      */
     public RequestFuture<Void> sendHeartbeatRequest() {
+        // todo generation必须是服务端可识别的，而且如果broker正在重新选coordinator，无需心跳
         HeartbeatRequest req = new HeartbeatRequest(this.groupId, this.generation, this.memberId);
         return client.send(coordinator, ApiKeys.HEARTBEAT, req)
                 .compose(new HeartbeatCompletionHandler());
@@ -623,6 +648,7 @@ public abstract class AbstractCoordinator implements Closeable {
 
         @Override
         public void handle(HeartbeatResponse heartbeatResponse, RequestFuture<Void> future) {
+            // todo 心跳响应中，错误码会告知正在rebalance，需要rejoined
             sensors.heartbeatLatency.record(response.requestLatencyMs());
             Errors error = Errors.forCode(heartbeatResponse.errorCode());
             if (error == Errors.NONE) {

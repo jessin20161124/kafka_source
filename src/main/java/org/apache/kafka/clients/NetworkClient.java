@@ -244,6 +244,7 @@ public class NetworkClient implements KafkaClient {
 
     private void doSend(ClientRequest request, long now) {
         log.info("发送请求，添加到kafkaChannel#send字段，同时加入inFlightRequests：{}", request);
+        // 设置发送时间，监控超时
         request.setSendTimeMs(now);
         this.inFlightRequests.add(request);
         // TODO RequestSend封装消息体
@@ -261,6 +262,7 @@ public class NetworkClient implements KafkaClient {
      */
     @Override
     public List<ClientResponse> poll(long timeout, long now) {
+        // todo 更新metadata，发送请求
         long metadataTimeout = metadataUpdater.maybeUpdate(now);
         try {
             this.selector.poll(Utils.min(timeout, metadataTimeout, requestTimeoutMs));
@@ -434,6 +436,7 @@ public class NetworkClient implements KafkaClient {
     private void handleCompletedSends(List<ClientResponse> responses, long now) {
         // if no response is expected then when the send is completed, return it
         for (Send send : this.selector.completedSends()) {
+            // todo 如果最新的不需要等待响应，直接从inFlightRequests移除，并唤醒responses，写成功的从队头删除
             ClientRequest request = this.inFlightRequests.lastSent(send.destination());
             if (!request.expectResponse()) {
                 this.inFlightRequests.completeLastSent(send.destination());
@@ -452,6 +455,9 @@ public class NetworkClient implements KafkaClient {
         List<NetworkReceive> networkReceiveList = this.selector.completedReceives();
         for (NetworkReceive receive : networkReceiveList) {
             // 这个source即为接收方的ip？？？
+            // todo source这个节点的req，跟这个response关联起来，居然不用requestId....不会丢失吗？有序请求吗？
+            // todo inFlightRequests，对于每个node，front -> a -> b -> c -> tail，发送排队时，不断addFirst，所以tail是最老的那个待响应的请求。
+            //  收到请求时，服务端应该也是有序的，给最先收到的进行响应。客户端收到时，对应的响应自然关联到tail不断出队，所以这里其实是阻塞有序的协议，一个服务器节点按照收到的顺序有序处理请求，不能跳过。也可能是同时处理，但是必须按照收到的顺序响应。
             String source = receive.source();
             ClientRequest req = inFlightRequests.completeNext(source);
             Struct body = parseResponse(receive.payload(), req.request().header());
@@ -490,6 +496,7 @@ public class NetworkClient implements KafkaClient {
      * Validate that the response corresponds to the request we expect or else explode
      */
     private static void correlate(RequestHeader requestHeader, ResponseHeader responseHeader) {
+        // todo correlation id 必须是一致的，否则会报错
         //if (requestHeader.correlationId() != responseHeader.correlationId())
         if (System.currentTimeMillis() - startTime >= 5 * 1000)
             throw new IllegalStateException("Correlation id for response (" + responseHeader.correlationId()

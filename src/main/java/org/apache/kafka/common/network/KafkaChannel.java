@@ -132,6 +132,7 @@ public class KafkaChannel {
             receive = new NetworkReceive(maxReceiveSize, id);
         }
 
+        // todo 有缓存，可能只读取了部分
         receive(receive);
         if (receive.complete()) {
             receive.payload().rewind();
@@ -141,6 +142,11 @@ public class KafkaChannel {
         return result;
     }
 
+    /**
+     * todo 可能只写了部分
+     * @return
+     * @throws IOException
+     */
     public Send write() throws IOException {
         Send result = null;
         if (send != null && send(send)) {

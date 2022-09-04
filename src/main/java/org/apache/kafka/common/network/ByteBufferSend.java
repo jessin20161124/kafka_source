@@ -52,6 +52,12 @@ public class ByteBufferSend implements Send {
         return this.size;
     }
 
+    /**
+     * todo 一点一点写
+     * @param channel The Channel to write to
+     * @return
+     * @throws IOException
+     */
     @Override
     public long writeTo(GatheringByteChannel channel) throws IOException {
         long written = channel.write(buffers);

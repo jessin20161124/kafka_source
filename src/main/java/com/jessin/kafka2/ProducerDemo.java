@@ -31,6 +31,7 @@ public class ProducerDemo {
                 "org.apache.kafka.common.serialization.StringSerializer");
         properties.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 30000);
         properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 32 * 1024 * 1024);
+        // todo 线程安全的
         // 默认等待缓冲区，1min，缓存大小为32MB，RecordBatch默认是16384B = 16KB，也就是最多有2048个RecordBatch
         KafkaProducer producer = new KafkaProducer(properties);
         boolean isASync = args.length == 0;

@@ -161,6 +161,8 @@ public final class RecordAccumulator {
                     return appendResult;
             }
 
+            // todo  双检锁，再次分配，如果有了，直接关闭申请的缓冲区，如果没有，使用。这里会重复创建，临界区变小，提高并发量，牺牲空间换时间
+            //     申请也可能卡住，如果达到最大的话？
             // we don't have an in-progress record batch try to allocate a new batch
             int size = Math.max(this.batchSize, Records.LOG_OVERHEAD + Record.recordSize(key, value));
             log.trace("Allocating a new {} byte message buffer for topic {} partition {}", size, tp.topic(), tp.partition());
@@ -249,6 +251,7 @@ public final class RecordAccumulator {
 
     /**
      * Re-enqueue the given record batch in the accumulator to retry
+     * todo 重试的RecordBatch添加到队头
      */
     public void reenqueue(RecordBatch batch, long now) {
         batch.attempts++;
@@ -358,7 +361,7 @@ public final class RecordAccumulator {
         Map<Integer, List<RecordBatch>> batches = new HashMap<>();
         for (Node node : nodes) {
             int size = 0;
-            // 获取到的是该节点的主分区列表？？？
+            // todo 获取到的是该节点的主分区列表
             List<PartitionInfo> parts = cluster.partitionsForNode(node.id());
             List<RecordBatch> ready = new ArrayList<>();
             /* to make starvation less likely this loop doesn't start at 0 */
